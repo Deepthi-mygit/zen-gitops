@@ -14,7 +14,7 @@ spec:
 
   source:
     # Replace 'DPP-2026' with your GitHub username after forking zen-gitops
-    repoURL: https://github.com/deepthi-mygit/zen-gitops.git
+    repoURL: https://github.com/Deepthi-mygit/zen-gitops.git
     targetRevision: HEAD
     path: helm-charts
     helm:
