@@ -22,12 +22,12 @@ spec:
           - $values/envs/monitoring/prometheus-values.yaml
 
     # Values file reference for the Helm chart above
-    - repoURL: https://github.com/ravdy/zen-gitops.git
+    - repoURL: https://github.com/DPP-2026/zen-gitops.git
       targetRevision: feature/fluent-bit-logging
       ref: values
 
     # Raw manifests: PodMonitor and any other monitoring resources
-    - repoURL: https://github.com/ravdy/zen-gitops.git
+    - repoURL: https://github.com/DPP-2026/zen-gitops.git
       targetRevision: feature/fluent-bit-logging
       path: k8s/monitoring
 
