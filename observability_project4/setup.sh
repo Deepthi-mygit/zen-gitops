@@ -40,6 +40,31 @@ kubectl cluster-info --request-timeout=5s &>/dev/null \
 success "Cluster reachable: $CLUSTER"
 
 # =============================================================================
+# STEP 0b — Collect Elastic Cloud credentials
+# =============================================================================
+echo ""
+info "=== Elastic Cloud Configuration ==="
+echo "  Fluent Bit ships logs to Elastic Cloud. Provide your credentials below."
+echo "  (Leave blank to keep the existing value already in the cluster/repo)"
+echo ""
+
+# Elastic host — show current value from values file as default
+CURRENT_HOST=$(grep 'host:' "$REPO_ROOT/envs/dev/values-fluent-bit.yaml" \
+  | awk '{print $2}' | tr -d '"')
+
+read -r -p "  Elastic Cloud host [$CURRENT_HOST]: " INPUT_HOST
+ELASTIC_HOST="${INPUT_HOST:-$CURRENT_HOST}"
+
+# API key — hidden input, no default shown for security
+read -r -s -p "  Elastic API key (base64 encoded, input hidden): " ELASTIC_API_KEY
+echo ""
+
+[[ -z "$ELASTIC_API_KEY" ]] && fail "Elastic API key cannot be empty."
+
+success "Elastic host : $ELASTIC_HOST"
+success "Elastic API key : [set]"
+
+# =============================================================================
 # STEP 1 — EBS CSI Driver (prerequisite for persistent storage)
 # =============================================================================
 echo ""
@@ -181,6 +206,30 @@ success "Logged in to ArgoCD"
 # =============================================================================
 echo ""
 info "=== STEP 4: Fluent Bit ==="
+
+# 4a. Update Elastic host in values file if it changed, then push to Git
+if [[ "$ELASTIC_HOST" != "$CURRENT_HOST" ]]; then
+  info "Updating Elastic host in envs/dev/values-fluent-bit.yaml ..."
+  sed -i.bak "s|host:.*|host: \"$ELASTIC_HOST\"|" \
+    "$REPO_ROOT/envs/dev/values-fluent-bit.yaml" \
+    && rm -f "$REPO_ROOT/envs/dev/values-fluent-bit.yaml.bak"
+  git -C "$REPO_ROOT" add envs/dev/values-fluent-bit.yaml
+  git -C "$REPO_ROOT" commit -m "config: update Elastic Cloud host for Fluent Bit"
+  git -C "$REPO_ROOT" push origin "$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
+  success "Elastic host updated and pushed to Git"
+else
+  success "Elastic host unchanged — no Git update needed"
+fi
+
+# 4b. Create/update the Elastic API key secret in the dev namespace
+kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f - &>/dev/null
+kubectl create secret generic fluent-bit-elastic-credentials \
+  --namespace dev \
+  --from-literal=api_key="$ELASTIC_API_KEY" \
+  --dry-run=client -o yaml | kubectl apply -f - &>/dev/null
+success "Secret fluent-bit-elastic-credentials created/updated in dev namespace"
+
+# 4c. Apply the ArgoCD app
 kubectl apply -f "$REPO_ROOT/observability_project4/fluent-bit-app.yaml" &>/dev/null
 success "fluent-bit-dev ArgoCD app applied"
 
