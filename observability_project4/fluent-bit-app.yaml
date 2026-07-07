@@ -12,10 +12,10 @@ metadata:
 spec:
   project: pharma
   source:
-<<<<<<<< HEAD:argocd/apps/dev/qc-service-app.yaml
-    repoURL: https://github.com/DPP-2026/zen-gitops.git
-    targetRevision: HEAD
-    path: helm-charts
+
+    repoURL: https://github.com/Deepthi-mygit/zen-gitops.git
+    targetRevision: feature/fluent-bit-logging
+    path: helm-charts-fluent-bit
 
     helm:
       valueFiles:

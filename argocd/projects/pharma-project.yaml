@@ -9,6 +9,7 @@ spec:
   description: Pharma microservices project
 
   sourceRepos:
+    # Replace 'ravdy' with your GitHub username after forking zen-gitops
     - "https://github.com/Deepthi-mygit/zen-gitops.git"
     - "https://charts.helm.sh/stable"
     - "https://prometheus-community.github.io/helm-charts"
