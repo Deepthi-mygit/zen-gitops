@@ -1,31 +1,33 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: qc-service-dev
+  name: fluent-bit-dev
   namespace: argocd
   labels:
     env: dev
-    app: qc-service
+    app: fluent-bit
     managed-by: terraform
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: pharma
-  source:
 
+  source:
     repoURL: https://github.com/Deepthi-mygit/zen-gitops.git
     targetRevision: feature/fluent-bit-logging
     path: helm-charts-fluent-bit
-
     helm:
       valueFiles:
-        - ../envs/dev/values-qc-service.yaml
+        - ../envs/dev/values-fluent-bit.yaml
+
   destination:
     server: https://kubernetes.default.svc
     namespace: dev
+
   syncPolicy:
     automated:
       prune: true
+      selfHeal: true
       allowEmpty: false
     syncOptions:
       - CreateNamespace=true
@@ -37,4 +39,5 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
+
   revisionHistoryLimit: 10
